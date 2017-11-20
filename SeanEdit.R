@@ -38,7 +38,7 @@ length(rVar)
 #k means clustering
 d=exprs(GSE9891_eset)
 dim(d)
-d2 = d[which(rM>=7 & rVar >= 0.5),] #filtering out the genes
+d2 = d[which(rM>=7 | rVar >= 0.5),] #filtering out the genes
 dim(d2)
 
 results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
