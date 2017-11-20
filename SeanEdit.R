@@ -2,13 +2,29 @@
 #biocLite("curatedOvarianData")
 library(curatedOvarianData)
 library(Biobase)
-data(package="curatedOvarianData")
-data(TCGA_eset)
-head(TCGA_eset)
+data(package="curatedOvarianData") #pulls all the datasets
 
-data("GSE2109_eset")
-data("GSE26712_eset")
+data(GSE9891_eset)
+head(GSE9891_eset)
+phenoData(GSE9891_eset)$sample_type
+table(GSE9891_eset$sample_type, GSE9891_eset$histological_type)
 
-table(GSE2109_eset$sample_type)
+head(exprs(GSE9891_eset))[,1:5]
 
-table(GSE26712_eset$sample_type)
+colnames(phenoData(GSE9891_eset))
+
+library(matrixStats)
+rv <- rowVars(exprs(GSE9891_eset))
+o <- order(rv,decreasing=TRUE)
+dists <- dist(t(exprs(GSE9891_eset)[head(o,500),]))
+
+hc <- hclust(dists)
+dend <- as.dendrogram(hc)
+
+library(dendextend)
+library(RColorBrewer)
+palette(brewer.pal(8, "Dark2"))
+o.dend <- order.dendrogram(dend)
+#labels(dend) <- GSE9891_eset$sample[o.dend]
+#labels_colors(dend) <- as.integer(GSE9891_eset$sample[o.dend])
+plot(dend)
