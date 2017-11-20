@@ -20,6 +20,7 @@ colnames(phenoData(GSE9891_eset)) #all the clinical variables
 library(matrixStats)
 library(dplyr)
 
+
 #gene filtering: the data was already log transformed
 #Genes with log expression values of <7 and a variance of
   #<0.5 were filtered out before clustering, leaving 8,732 probe sets
@@ -35,12 +36,15 @@ length(rVar)
 
 
 
-#k means clustering
+
+
+#k Means Clustering Begins Here
 d=exprs(GSE9891_eset)
 dim(d)
 d2 = d[which(rM>=7 | rVar >= 0.5),] #filtering out the genes
 dim(d2)
 
+#Run Consensus Cluster Plus to obtain consensus set
 results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
 table(results[[6]][["consensusClass"]])
 icl = calcICL(results)
@@ -49,7 +53,46 @@ icl6=(icl$itemConsensus)[(icl$itemConsensus)$k==6,]
 icl6%>%group_by(item)%>%filter( itemConsensus==max(itemConsensus))->outICL6
 sum(outICL6$itemConsensus<0.8)
 
+#Subset to consensus set
 consenSet=outICL6$item[outICL6$itemConsensus>0.8]
+#Obtain clusters for consensus set
+yClust=outICL6$cluster[outICL6$itemConsensus>0.8]
+
+#Find NonConsensus Set
+nonConSet=outICL6$item[outICL6$itemConsensus<=0.8]
+testSet=d2[,nonConSet]
+
+#Run K Nearest Neighbor Algorithm
+library(class)
+trainSet=d2[,consenSet]
+crossVal=knn.cv(t(trainSet),yClust,k=3)
+
+#Calculates error rate for specified k value on our training set. 
+#low and high are the lower and upper bounds of k to be used
+#finding the appropriate k to be used 
+findBestK=function(low,high,by=1){
+  error=NULL
+  
+  for(k in seq(low,high,1)){
+    crossVal=knn.cv(t(trainSet),yClust,k=k)
+    error[k]<-mean(crossVal!=yClust) #proportion of misclassification, since crossVal! != yClust is 0 or 1
+  }
+  return(error)
+}
+
+kLow=1
+kHigh=5
+kError=findBestK(kLow,kHigh)
+chosenK=((kLow:kHigh)[(kError==min(kError))])[1] #choose k to minimize the error
+
+
+##Find KNN Classification of test data set
+  #prediction of a value in our noncensenus set
+knnOut=knn(train=t(trainSet),test=t(testSet), cl=yClust,k=chosenK)
+
+
+
+
 
 #outPC=prcomp(t(exprs(GSE9891_eset)))
 
