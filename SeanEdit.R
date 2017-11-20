@@ -10,8 +10,8 @@ data(package="curatedOvarianData")
 
 data("GSE9891_eset")
 
-rM=colMeans(log2(t(exprs(GSE9891_eset)+1)))
-rVar=rowVars(log(exprs(GSE9891_eset)+1))
+rM=rowMeans((exprs(GSE9891_eset)))
+rVar=rowVars((exprs(GSE9891_eset)))
 
 
 #Grade, Stage (Summary vs. tumor), substage, age, tax, recurrence status, site of first recurrence,primary therapy outcome success
@@ -21,7 +21,7 @@ rVar=rowVars(log(exprs(GSE9891_eset)+1))
 
 
 
-d=log(exprs(GSE9891_eset)+1)
+d=(exprs(GSE9891_eset)+1)
 rv=rowVars(d)
 d2=d[order(rv,decreasing = T)[1:5000],]
 
@@ -33,7 +33,19 @@ icl6=(icl$itemConsensus)[(icl$itemConsensus)$k==6,]
 icl6%>%group_by(item)%>%filter( itemConsensus==max(itemConsensus))->outICL6
 sum(outICL6$itemConsensus<0.8)
 
+#Subset to consensus set
 consenSet=outICL6$item[outICL6$itemConsensus>0.8]
+#Obtain clusters for consensus set
+yClust=outICL6$cluster[outICL6$itemConsensus>0.8]
+
+library(class)
+trainSet=d[,consenSet]
+crossVal=knn.cv(t(trainSet),yClust,k=3)
+
+
+
+
+
 
 outPC=prcomp(t(exprs(GSE9891_eset)))
 
