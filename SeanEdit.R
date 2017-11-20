@@ -4,18 +4,36 @@
 library(ConsensusClusterPlus)
 library(curatedOvarianData)
 library(Biobase)
+
+data(package="curatedOvarianData") #pulls all the datasets
+
+data(GSE9891_eset) #pulls data we are using
+head(GSE9891_eset)
+phenoData(GSE9891_eset)$sample_type
+table(GSE9891_eset$sample_type, GSE9891_eset$histological_type)
+
+head(exprs(GSE9891_eset))[,1:5] #view a small bit of the count data matrix
+
+colnames(phenoData(GSE9891_eset)) #all the clinical variables
+
+
 library(matrixStats)
 library(dplyr)
-data(package="curatedOvarianData")
-
-data("GSE9891_eset")
-
-rM=rowMeans((exprs(GSE9891_eset)))
-rVar=rowVars((exprs(GSE9891_eset)))
 
 
+#gene filtering: the data was already log transformed
+#Genes with log expression values of <7 and a variance of
+  #<0.5 were filtered out before clustering, leaving 8,732 probe sets
+rM=colMeans(t(exprs(GSE9891_eset)))
+rVar=rowVars(exprs(GSE9891_eset))
+
+length(rM)
+length(rVar)
+
+#Clinical Variables
 #Grade, Stage (Summary vs. tumor), substage, age, tax, recurrence status, site of first recurrence,primary therapy outcome success
 #Debulking, % normal stromal tumor cells , batch
+
 
 
 
@@ -24,6 +42,12 @@ rVar=rowVars((exprs(GSE9891_eset)))
 d=(exprs(GSE9891_eset)+1)
 rv=rowVars(d)
 d2=d[order(rv,decreasing = T)[1:5000],]
+
+#k means clustering
+d=exprs(GSE9891_eset)
+dim(d)
+d2 = d[which(rM>=7 & rVar >= 0.5),] #filtering out the genes
+dim(d2)
 
 results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
 table(results[[6]][["consensusClass"]])
@@ -47,9 +71,9 @@ crossVal=knn.cv(t(trainSet),yClust,k=3)
 
 
 
-outPC=prcomp(t(exprs(GSE9891_eset)))
+#outPC=prcomp(t(exprs(GSE9891_eset)))
 
+#Table 1 in paper: See how many of each sample type (LMP and Malignant) are in the cluster
 t=pData(GSE9891_eset)
 t2=t[consenSet,]
 table(t2$sample_type,outICL6$cluster[outICL6$itemConsensus>0.8])
-
