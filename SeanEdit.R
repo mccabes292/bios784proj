@@ -5,6 +5,7 @@ library(ConsensusClusterPlus)
 library(curatedOvarianData)
 library(Biobase)
 library(matrixStats)
+library(dplyr)
 data(package="curatedOvarianData")
 
 data("GSE9891_eset")
@@ -17,16 +18,21 @@ rVar=rowVars(log(exprs(GSE9891_eset)+1))
 #Debulking, % normal stromal tumor cells , batch
 
 
-outMeans=kmeans(t(exprs(GSE9891_eset)),centers=6)
-head(outMeans$size)
+
+
+
+d=log(exprs(GSE9891_eset)+1)
+rv=rowVars(d)
+d2=d[order(rv,decreasing = T)[1:5000],]
+
+results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
+table(results[[6]][["consensusClass"]])
+icl = calcICL(results)
+icl6=(icl$itemConsensus)[(icl$itemConsensus)$k==6,]
+
+icl6%>%group_by(item)%>%filter( itemConsensus==max(itemConsensus))->outICL6
+sum(outICL6$itemConsensus<0.8)
 
 
 outPC=prcomp(t(exprs(GSE9891_eset)))
-
-
-d=exprs(GSE9891_eset)
-
-results = ConsensusClusterPlus(d,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="hc",distance="pearson",seed=1262118388.71279,plot="png")
-table(results[[6]][["consensusClass"]])
-icl = calcICL(results)
 
