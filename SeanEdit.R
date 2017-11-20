@@ -20,21 +20,26 @@ colnames(phenoData(GSE9891_eset)) #all the clinical variables
 library(matrixStats)
 library(dplyr)
 
-#gene filtering
-rM=colMeans(log2(t(exprs(GSE9891_eset)+1)))
-rVar=rowVars(log(exprs(GSE9891_eset)+1))
+#gene filtering: the data was already log transformed
+#Genes with log expression values of <7 and a variance of
+  #<0.5 were filtered out before clustering, leaving 8,732 probe sets
+rM=colMeans(t(exprs(GSE9891_eset)))
+rVar=rowVars(exprs(GSE9891_eset))
 
+length(rM)
+length(rVar)
 
+#Clinical Variables
 #Grade, Stage (Summary vs. tumor), substage, age, tax, recurrence status, site of first recurrence,primary therapy outcome success
 #Debulking, % normal stromal tumor cells , batch
 
 
 
-
 #k means clustering
-d=log(exprs(GSE9891_eset)+1)
-rv=rowVars(d)
-d2=d[order(rv,decreasing = T)[1:5000],]
+d=exprs(GSE9891_eset)
+dim(d)
+d2 = d[which(rM>=7 & rVar >= 0.5),]
+dim(d2)
 
 results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
 table(results[[6]][["consensusClass"]])
@@ -48,7 +53,7 @@ consenSet=outICL6$item[outICL6$itemConsensus>0.8]
 
 outPC=prcomp(t(exprs(GSE9891_eset)))
 
+#Table 1 in paper: See how many of each sample type (LMP and Malignant) are in the cluster
 t=pData(GSE9891_eset)
 t2=t[consenSet,]
 table(t2$sample_type,outICL6$cluster[outICL6$itemConsensus>0.8])
-
