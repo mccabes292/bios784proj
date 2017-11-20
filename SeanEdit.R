@@ -33,6 +33,11 @@ icl6=(icl$itemConsensus)[(icl$itemConsensus)$k==6,]
 icl6%>%group_by(item)%>%filter( itemConsensus==max(itemConsensus))->outICL6
 sum(outICL6$itemConsensus<0.8)
 
+consenSet=outICL6$item[outICL6$itemConsensus>0.8]
 
 outPC=prcomp(t(exprs(GSE9891_eset)))
+
+t=pData(GSE9891_eset)
+t2=t[consenSet,]
+table(t2$sample_type,outICL6$cluster[outICL6$itemConsensus>0.8])
 
