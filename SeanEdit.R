@@ -38,7 +38,7 @@ length(rVar)
 #k means clustering
 d=exprs(GSE9891_eset)
 dim(d)
-d2 = d[which(rM>=7 & rVar >= 0.5),]
+d2 = d[which(rM>=7 & rVar >= 0.5),] #filtering out the genes
 dim(d2)
 
 results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
@@ -51,7 +51,7 @@ sum(outICL6$itemConsensus<0.8)
 
 consenSet=outICL6$item[outICL6$itemConsensus>0.8]
 
-outPC=prcomp(t(exprs(GSE9891_eset)))
+#outPC=prcomp(t(exprs(GSE9891_eset)))
 
 #Table 1 in paper: See how many of each sample type (LMP and Malignant) are in the cluster
 t=pData(GSE9891_eset)
