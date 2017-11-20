@@ -38,17 +38,14 @@ length(rVar)
 
 
 
-
-d=(exprs(GSE9891_eset)+1)
-rv=rowVars(d)
-d2=d[order(rv,decreasing = T)[1:5000],]
-
 #k means clustering
 d=exprs(GSE9891_eset)
 dim(d)
-d2 = d[which(rM>=7 & rVar >= 0.5),] #filtering out the genes
+d2 = d[which(rM>=7 | rVar >= 0.5),] #filtering out the genes
+
 dim(d2)
 
+#Run Consensus Cluster Plus to obtain consensus set
 results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
 table(results[[6]][["consensusClass"]])
 icl = calcICL(results)
@@ -62,10 +59,35 @@ consenSet=outICL6$item[outICL6$itemConsensus>0.8]
 #Obtain clusters for consensus set
 yClust=outICL6$cluster[outICL6$itemConsensus>0.8]
 
+#Find NonConsensus Set
+nonConSet=outICL6$item[outICL6$itemConsensus<=0.8]
+testSet=d2[,nonConSet]
+
+#Run K Nearest Neighbor Algorithm
 library(class)
-trainSet=d[,consenSet]
+trainSet=d2[,consenSet]
 crossVal=knn.cv(t(trainSet),yClust,k=3)
 
+#Calculates error rate for specified k value on our training set. 
+#low and high are the lower and upper bounds of k to be used
+findBestK=function(low,high,by=1){
+  error=NULL
+  
+  for(k in seq(low,high,1)){
+    crossVal=knn.cv(t(trainSet),yClust,k=k)
+    error[k]<-mean(crossVal!=yClust)
+  }
+  return(error)
+}
+
+kLow=1
+kHigh=5
+kError=findBestK(kLow,kHigh)
+chosenK=((kLow:kHigh)[(kError==min(kError))])[1]
+
+
+##Find KNN Classification of test data set
+knnOut=knn(train=t(trainSet),test=t(testSet), cl=yClust,k=chosenK)
 
 
 
