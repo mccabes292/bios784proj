@@ -46,7 +46,7 @@ d2 = d[which(rM>=7 | rVar >= 0.5),] #filtering out the genes
 dim(d2)
 
 #Run Consensus Cluster Plus to obtain consensus set
-results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=1,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
+results = ConsensusClusterPlus(d2,maxK=6,reps=1000,pItem=0.8,pFeature=0.8,clusterAlg="kmdist",distance="pearson",seed=1262118388.71279)
 table(results[[6]][["consensusClass"]])
 icl = calcICL(results)
 icl6=(icl$itemConsensus)[(icl$itemConsensus)$k==6,]
@@ -59,13 +59,14 @@ consenSet=outICL6$item[outICL6$itemConsensus>0.8]
 #Obtain clusters for consensus set
 yClust=outICL6$cluster[outICL6$itemConsensus>0.8]
 
+trainSet=d2[,consenSet]
+
 #Find NonConsensus Set
 nonConSet=outICL6$item[outICL6$itemConsensus<=0.8]
 testSet=d2[,nonConSet]
 
 #Run K Nearest Neighbor Algorithm
 library(class)
-trainSet=d2[,consenSet]
 crossVal=knn.cv(t(trainSet),yClust,k=3)
 
 #Calculates error rate for specified k value on our training set. 
@@ -73,7 +74,7 @@ crossVal=knn.cv(t(trainSet),yClust,k=3)
 findBestK=function(low,high,by=1){
   error=NULL
   
-  for(k in seq(low,high,1)){
+for(k in seq(low,high,1)){
     crossVal=knn.cv(t(trainSet),yClust,k=k)
     error[k]<-mean(crossVal!=yClust)
   }
@@ -91,8 +92,13 @@ knnOut=knn(train=t(trainSet),test=t(testSet), cl=yClust,k=chosenK)
 
 
 
+####LDA####
 
 
+library(HiDimDA)
+outLda=DACrossVal(t(trainSet),as.factor(yClust),TrainAlg = Dlda,kfold=2)
+
+out1=Dlda(t(trainSet),as.factor(yClust))
 #outPC=prcomp(t(exprs(GSE9891_eset)))
 
 #Table 1 in paper: See how many of each sample type (LMP and Malignant) are in the cluster
