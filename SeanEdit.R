@@ -38,11 +38,10 @@ length(rVar)
 
 
 
-#k means clustering
+#k Means Clustering Begins Here
 d=exprs(GSE9891_eset)
 dim(d)
 d2 = d[which(rM>=7 | rVar >= 0.5),] #filtering out the genes
-
 dim(d2)
 
 #Run Consensus Cluster Plus to obtain consensus set
@@ -71,12 +70,13 @@ crossVal=knn.cv(t(trainSet),yClust,k=3)
 
 #Calculates error rate for specified k value on our training set. 
 #low and high are the lower and upper bounds of k to be used
+#finding the appropriate k to be used 
 findBestK=function(low,high,by=1){
   error=NULL
   
 for(k in seq(low,high,1)){
     crossVal=knn.cv(t(trainSet),yClust,k=k)
-    error[k]<-mean(crossVal!=yClust)
+    error[k]<-mean(crossVal!=yClust) #proportion of misclassification, since crossVal! != yClust is 0 or 1
   }
   return(error)
 }
@@ -84,10 +84,11 @@ for(k in seq(low,high,1)){
 kLow=1
 kHigh=5
 kError=findBestK(kLow,kHigh)
-chosenK=((kLow:kHigh)[(kError==min(kError))])[1]
+chosenK=((kLow:kHigh)[(kError==min(kError))])[1] #choose k to minimize the error
 
 
 ##Find KNN Classification of test data set
+  #prediction of a value in our noncensenus set
 knnOut=knn(train=t(trainSet),test=t(testSet), cl=yClust,k=chosenK)
 
 
