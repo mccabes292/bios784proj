@@ -44,7 +44,7 @@ icl = calcICL(results)
 icl6=(icl$itemConsensus)[(icl$itemConsensus)$k==6,]
 
 icl6%>%group_by(item)%>%filter( itemConsensus==max(itemConsensus))->outICL6
-sum(outICL6$itemConsensus>0.8)
+sum(outICL6$itemConsensus<0.7)
 
 #Subset to consensus set
 #PROPOSAL: Subset to 70% instead
@@ -60,7 +60,6 @@ testSet=d2[,nonConSet]
 
 #Run K Nearest Neighbor Algorithm
 library(class)
-crossVal=knn.cv(t(trainSet),yClust,k=3)
 
 #Calculates error rate for specified k value on our training set. 
 #low and high are the lower and upper bounds of k to be used
@@ -93,6 +92,29 @@ knnOut=knn(train=t(trainSet),test=t(testSet), cl=yClust,k=chosenK)
 library(HiDimDA)
 outLda=Dlda(t(trainSet),as.factor(yClust),ldafun="classification")
 p1=predict(outLda,t(testSet))
+
+
+
+
+classVec=(knnOut==(as.numeric(p1$class)))
+names(classVec)=colnames(testSet)
+
+classVec2=rep(1,length(consenSet))
+names(classVec2)=consenSet
+
+classVec3=ifelse(classVec==T,2,3)
+
+ncIds=colnames(testSet)[classVec==FALSE]
+
+
+classification=c(classVec3,classVec2)
+classification2=classification[colnames(GSE9891_eset)]
+
+
+finalSE=GSE9891_eset[which(rM>=7 | rVar >= 0.5),]
+finalSE$classification=classification2
+
+
 
 
 
