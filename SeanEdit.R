@@ -44,7 +44,7 @@ icl = calcICL(results)
 icl6=(icl$itemConsensus)[(icl$itemConsensus)$k==6,]
 
 icl6%>%group_by(item)%>%filter( itemConsensus==max(itemConsensus))->outICL6
-sum(outICL6$itemConsensus>0.8)
+sum(outICL6$itemConsensus<0.7)
 
 #Subset to consensus set
 #PROPOSAL: Subset to 70% instead
