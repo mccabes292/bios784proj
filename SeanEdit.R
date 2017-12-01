@@ -51,6 +51,7 @@ sum(outICL6$itemConsensus<0.7)
 consenSet=outICL6$item[outICL6$itemConsensus>0.7]
 #Obtain clusters for consensus set
 yClust=outICL6$cluster[outICL6$itemConsensus>0.7]
+names(yClust)=consenSet
 
 trainSet=d2[,consenSet]
 
@@ -106,15 +107,23 @@ names(classVec2)=consenSet
 
 classVec3=ifelse(classVec==T,2,3)
 
-ncIds=colnames(testSet)[classVec==FALSE]
+
+
+clusterMem=ifelse(classVec==TRUE, knnOut, 0)
+clusterMem2=c(clusterMem,yClust)
+clusterMem3=clusterMem2[colnames(GSE9891_eset)]
 
 
 classification=c(classVec3,classVec2)
 classification2=classification[colnames(GSE9891_eset)]
 
 
+##Classification Variable is 1 if >0.7 in Classification Cluster +, 2 if classified via KNN and Dlda, and 3 if NC
 finalSE=GSE9891_eset[which(rM>=7 | rVar >= 0.5),]
 finalSE$classification=classification2
+finalSE$clusterMem=clusterMem3
+
+save(finalSE,file="finalSet")
 
 save(finalSE,file="C:\\Users\\Pooja S\\Documents\\Third Year\\Bios 784\\bios784groupproj")
 
