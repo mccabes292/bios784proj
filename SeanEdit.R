@@ -125,9 +125,6 @@ finalSE$clusterMem=clusterMem3
 
 save(finalSE,file="finalSet")
 
-save(finalSE,file="C:\\Users\\Pooja S\\Documents\\Third Year\\Bios 784\\bios784groupproj")
-
-
 
 
 
