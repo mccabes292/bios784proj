@@ -95,7 +95,9 @@ p1=predict(outLda,t(testSet))
 
 
 
-
+#Adding Classification & Cluster Variables to ExpressionSet
+# Classification = 1 if CC+, 2 = KNN & DLDA Agree, 3 = Not Classified
+#ClusterMem = 1-6, 0 if Not Classified
 classVec=(knnOut==(as.numeric(p1$class)))
 names(classVec)=colnames(testSet)
 
@@ -114,7 +116,7 @@ classification2=classification[colnames(GSE9891_eset)]
 finalSE=GSE9891_eset[which(rM>=7 | rVar >= 0.5),]
 finalSE$classification=classification2
 
-
+save(finalSE,file="C:\\Users\\Pooja S\\Documents\\Third Year\\Bios 784\\bios784groupproj")
 
 
 
